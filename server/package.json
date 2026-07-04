@@ -1,0 +1,23 @@
+{
+  "name": "api-key-catalog-server",
+  "version": "1.0.0",
+  "description": "Private API key catalog - backend API",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate deploy",
+    "prisma:migrate:dev": "prisma migrate dev",
+    "seed": "node scripts/seed.js"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.3.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "prisma": "^6.3.0"
+  }
+}

@@ -1,0 +1,30 @@
+// Prisma schema for the API Key Catalog
+// See https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model ApiKey {
+  id            String    @id @default(cuid())
+  platformName  String
+  description   String?   @db.Text
+  endpointUrl   String?
+  docsUrl       String?
+  keyLabel      String
+  keyValue      String    @db.Text  // encrypted at rest; never returned in plaintext by default
+  createdBy     String
+  expirationDate DateTime?
+  notes         String?   @db.Text
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([platformName])
+  @@index([isActive])
+}
