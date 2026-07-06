@@ -1,18 +1,24 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import KeyTable from './components/KeyTable.jsx';
 import KeyForm from './components/KeyForm.jsx';
 import KeyDetailModal from './components/KeyDetailModal.jsx';
 import ConfirmDialog from './components/ConfirmDialog.jsx';
 import { api } from './utils/api.js';
+import { useTheme } from './utils/useTheme.js';
+import { usePersistedState } from './utils/usePersistedState.js';
 
 export default function App() {
+  const { theme, toggleTheme } = useTheme();
+
   const [keys, setKeys] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // UI state
-  const [search, setSearch] = useState('');
-  const [activeFilter, setActiveFilter] = useState('all'); // all, active, inactive
+  // UI state — persisted across sessions
+  const [search, setSearch] = usePersistedState('keyvault-search', '');
+  const [activeFilter, setActiveFilter] = usePersistedState('keyvault-filter', 'all');
+
+  // Non-persisted UI state
   const [showForm, setShowForm] = useState(false);
   const [editingKey, setEditingKey] = useState(null);
   const [detailKey, setDetailKey] = useState(null);
@@ -84,21 +90,40 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200">
+      <header className="bg-white border-b border-gray-200 dark:bg-gray-900 dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">🔐 API Key Catalog</h1>
-              <p className="text-sm text-gray-500 mt-1">Private catalog of API keys by platform</p>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">🔐 API Key Catalog</h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Private catalog of API keys by platform</p>
             </div>
-            <button
-              onClick={handleCreate}
-              className="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 font-medium text-sm"
-            >
-              + Add Key
-            </button>
+            <div className="flex items-center gap-3">
+              {/* Dark mode toggle */}
+              <button
+                onClick={toggleTheme}
+                className="p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                aria-label="Toggle dark mode"
+              >
+                {theme === 'dark' ? (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                  </svg>
+                )}
+              </button>
+              <button
+                onClick={handleCreate}
+                className="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 font-medium text-sm"
+              >
+                + Add Key
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -112,12 +137,12 @@ export default function App() {
             placeholder="Search by platform, label, description, or creator..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent text-sm"
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent text-sm bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-500"
           />
           <select
             value={activeFilter}
             onChange={(e) => setActiveFilter(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm bg-white"
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm bg-white dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
           >
             <option value="all">All Keys</option>
             <option value="true">Active Only</option>
@@ -127,11 +152,11 @@ export default function App() {
 
         {/* Error state */}
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm text-red-700">
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg dark:bg-red-900/20 dark:border-red-800">
+            <p className="text-sm text-red-700 dark:text-red-400">
               <strong>Error:</strong> {error}
             </p>
-            <button onClick={fetchKeys} className="mt-2 text-sm text-red-600 underline">
+            <button onClick={fetchKeys} className="mt-2 text-sm text-red-600 dark:text-red-400 underline">
               Retry
             </button>
           </div>
@@ -140,7 +165,7 @@ export default function App() {
         {/* Loading state */}
         {loading && (
           <div className="flex items-center justify-center py-16">
-            <div className="text-gray-400 text-sm">Loading...</div>
+            <div className="text-gray-400 dark:text-gray-500 text-sm">Loading...</div>
           </div>
         )}
 
@@ -148,7 +173,7 @@ export default function App() {
         {!loading && !error && keys.length === 0 && (
           <div className="text-center py-16">
             <div className="text-5xl mb-4">🔑</div>
-            <p className="text-gray-500 text-sm mb-4">
+            <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">
               {search || activeFilter !== 'all'
                 ? 'No keys match your filters.'
                 : 'No API keys yet. Add your first key to get started.'}
@@ -200,7 +225,6 @@ export default function App() {
           }}
         />
       )}
-
       {/* Delete confirmation */}
       {deleteTarget && (
         <ConfirmDialog
